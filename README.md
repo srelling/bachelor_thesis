@@ -6,7 +6,7 @@ Adaptive Mesh Refinement for the Conjugate Heat Transfer Equations Using Firedra
 - [ ] Make different meshes to try out
 - [ ] Set up test problem/mesh for which i can compare to a analytical solution
 # Problems
-- [ ] Reynolds number only influences the pressure field and npt the velocity field so it doesn't make a difference for the final temperature field
+- [ ] Reynolds number only influences the pressure field and npt the velocity field so it doesn't make a difference for the final temperature field, does this make sense?
 - [ ] The magnitude of the velocity field does seem to make only a tiny difference in the final temperature field
-- [ ] maybe I should use neuman boundry conditions on the surfaces of the domain?
+- [ ] maybe I should use neuman boundry conditions on the surfaces of the domain to simulate the exchange of heat on the domain? But then the exchange of heat would be fix and not dependent on the flow of the liqiud?
 # Bugs
