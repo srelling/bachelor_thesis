@@ -11,7 +11,7 @@ Inflow_velocity = 10**(-2)
 
 # Advection-Diffusion parameters
 Inflow_temperature = 0
-Cylinder_temperature = 10
+Cylinder_temperature = 1
 Source_temperature = 0.01
 HorEdges_temperature = 0
 Diffusion_coefficient = 1e-8
@@ -22,6 +22,7 @@ def plot_mesh(mesh):
     triplot(mesh, axes=axes)
     plt.gca().set_aspect('equal', adjustable='box')
     axes.legend()
+    plt.draw()
     
 def plot_velocity_and_pressure(u, p):
     fig, axes = plt.subplots(nrows=2, sharex=True, sharey=True)
@@ -33,6 +34,7 @@ def plot_velocity_and_pressure(u, p):
     fig.colorbar(contours, ax=axes[1], fraction=0.046)
     axes[1].set_aspect("equal")
     axes[1].set_title("Pressure")
+    plt.draw()
     
 def plot_temperature(u):
     colorplot = tripcolor(u)
@@ -52,7 +54,6 @@ def save_solution(u, p, T):
     T_file.write(T)
     print("Solution saved to output/output" + daytime_string + "/")
     
-
 
 # ======================NAVIER-STOKES======================
 def solveNS( msh ):
@@ -127,5 +128,6 @@ def solveCHT( msh, plot=True, save=True ):
     return u_sol
 
 # ======================MAIN======================
-msh = Mesh( '../meshes/immersed_domain.msh' )
-u_sol = solveCHT( msh , plot=True , save=False )
+if __name__ == "__main__":
+    msh = Mesh('../meshes/immersed_domain.msh')
+    u_sol = solveCHT(msh, plot=True, save=False)
