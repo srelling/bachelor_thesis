@@ -3,7 +3,8 @@ settings = {
     "save_plot": {
         "mesh": True,
         "velocity_pressure": True,
-        "temperature": True
+        "temperature": True,
+        "solution_difference": True
     },
     "save_vtk": {
         "velocity": True,
