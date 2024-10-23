@@ -32,48 +32,42 @@ def solveNS( msh, bcs ):
     for name, (func, tags) in bcs["NS_BCS"]:
             bc = DirichletBC( Z.sub( 0 ) , func , tags )
             ns_bcs.append( bc )
-    #u_inflow = as_vector( bcs["NS"]["inflow"]["func"] ) 
-    #ns_bcs = [
-    #    DirichletBC( Z.sub( 0 ), assemble( interpolate( u_inflow, V ) ), bcs["NS"]["inflow"]["tags"] ),
-    #    DirichletBC( Z.sub( 0 ), Constant( (0, 0) ), bcs["NS"]["no_slip"]["tags"] )
-    #]
 
-    nullspace = MixedVectorSpaceBasis(
-        Z, [Z.sub(0), VectorSpaceBasis(constant=True)])
-    appctx = {"Re": Re, "velocity_space": 0}
-    parameters = {"mat_type": "matfree",
-                  "snes_monitor": None,
-                  "ksp_type": "fgmres",
-                  "ksp_gmres_modifiedgramschmidt": None,
-                  "ksp_monitor_true_residual": None,
-                  "pc_type": "fieldsplit",
-                  "pc_fieldsplit_type": "schur",
-                  "pc_fieldsplit_schur_fact_type": "lower",
-                  "fieldsplit_0_ksp_type": "preonly",
-                  "fieldsplit_0_pc_type": "python",
-                  "fieldsplit_0_pc_python_type": "firedrake.AssembledPC",
-                  "fieldsplit_0_assembled_pc_type": "lu",
-                  "fieldsplit_1_ksp_type": "gmres",
-                  "fieldsplit_1_ksp_rtol": 1e-4,
-                  "fieldsplit_1_pc_type": "python",
-                  "fieldsplit_1_pc_python_type": "firedrake.PCDPC",
-                  "fieldsplit_1_pcd_Mp_ksp_type": "preonly",
-                  "fieldsplit_1_pcd_Mp_pc_type": "lu",
-                  "fieldsplit_1_pcd_Kp_ksp_type": "preonly",
-                  "fieldsplit_1_pcd_Kp_pc_type": "lu",
-                  "fieldsplit_1_pcd_Fp_mat_type": "matfree"}
-    
-    up.assign(0)
-
-    solve(F == 0, up, bcs=ns_bcs, nullspace=nullspace, solver_parameters=parameters,
-            appctx=appctx)
+    #nullspace = MixedVectorSpaceBasis(
+    #    Z, [Z.sub(0), VectorSpaceBasis(constant=True)])
+    #appctx = {"Re": Re, "velocity_space": 0}
+    #parameters = {"mat_type": "matfree",
+    #              "snes_monitor": None,
+    #              "ksp_type": "fgmres",
+    #              "ksp_gmres_modifiedgramschmidt": None,
+    #              "ksp_monitor_true_residual": None,
+    #              "pc_type": "fieldsplit",
+    #              "pc_fieldsplit_type": "schur",
+    #              "pc_fieldsplit_schur_fact_type": "lower",
+    #              "fieldsplit_0_ksp_type": "preonly",
+    #              "fieldsplit_0_pc_type": "python",
+    #              "fieldsplit_0_pc_python_type": "firedrake.AssembledPC",
+    #              "fieldsplit_0_assembled_pc_type": "lu",
+    #              "fieldsplit_1_ksp_type": "gmres",
+    #              "fieldsplit_1_ksp_rtol": 1e-4,
+    #              "fieldsplit_1_pc_type": "python",
+    #              "fieldsplit_1_pc_python_type": "firedrake.PCDPC",
+    #              "fieldsplit_1_pcd_Mp_ksp_type": "preonly",
+    #              "fieldsplit_1_pcd_Mp_pc_type": "lu",
+    #              "fieldsplit_1_pcd_Kp_ksp_type": "preonly",
+    #              "fieldsplit_1_pcd_Kp_pc_type": "lu",
+    #              "fieldsplit_1_pcd_Fp_mat_type": "matfree"}
+    #
+    #up.assign(0)
+    #solve(F == 0, up, bcs=ns_bcs, nullspace=nullspace, solver_parameters=parameters,
+    #        appctx=appctx)
 
         
-    #solve( F == 0, up, bcs=ns_bcs, 
-    #        solver_parameters={
-    #            "snes_monitor": None,
-    #        },
-    #    )
+    solve( F == 0, up, bcs=ns_bcs, 
+            solver_parameters={
+                "snes_monitor": None,
+            },
+        )
     u_init, p_init = up.subfunctions
     return u_init, p_init
 
@@ -99,8 +93,8 @@ def solveAD( msh, bcs, u_init ):
     one = Constant( 1.0 )
     eps_k = conditional( gt( Pe_k , one ) , one , Pe_k )
     tau_k = h_k / ( 2.0 * b_norm ) * eps_k
-    #a += inner( ( dot( b , grad( u ) ) - k * div( grad( u ) ) ) , tau_k * dot( b , grad( v ) ) ) * dx
-    #L += f * tau_k * dot( b , grad( v ) ) * dx
+    a += inner( ( dot( b , grad( u ) ) - k * div( grad( u ) ) ) , tau_k * dot( b , grad( v ) ) ) * dx
+    L += f * tau_k * dot( b , grad( v ) ) * dx
     u_sol = Function( V )
     problem = LinearVariationalProblem( a , L , u_sol , boundary_conditions )
     solver = LinearVariationalSolver( problem )
@@ -126,6 +120,6 @@ def solveCHT( msh, bcs ):
 
 # ======================MAIN======================
 if __name__ == "__main__":
-    msh = Mesh( '../meshes/square.msh' )
-    bcs = get_bcs( msh, "square_exact_bc" )
+    msh = Mesh( '../meshes/square2.msh' )
+    bcs = get_bcs( msh, "square_exact_bc2" )
     u_sol = solveCHT( msh, bcs )

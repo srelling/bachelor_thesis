@@ -1,7 +1,7 @@
 settings = {
     "show_plots": False,
     "save_plot": {
-        "mesh": False,
+        "mesh": True,
         "velocity_pressure": True,
         "temperature": True,
         "solution_difference": True
