@@ -6,7 +6,9 @@ Adaptive Mesh Refinement for the Conjugate Heat Transfer Equations Using Firedra
 - [x] Add inflow velocity and source function to input parameters as firedrake functions
 - [x] Set up test problem/mesh for which i can compare to a analytical solution
 - [x] Add a manufactured solution with a degree 3 polynomial
+- [x] Plot the convergence of CHTSolve on uniform refined mesh of exact solution of degree 3
 - [ ] Simple uniform refinement implementation
+- [ ] Create First Adaptive refinement Error indicator
 - [ ] Make different meshes to try out
 # Problems
 - [ ] Reynolds number only influences the pressure field and npt the velocity field so it doesn't make a difference for the final temperature field, does this make sense?
