@@ -1,5 +1,5 @@
 # Navier-Stokes parameters
-Reynolds_number = 10
+Reynolds_number = 100
 Inflow_velocity = 10**(-2)
 
 # Advection-Diffusion parameters
