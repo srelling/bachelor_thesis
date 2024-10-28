@@ -36,6 +36,22 @@ def get_square_exact_bc2(msh):
     }
     return bcs
 
+def get_ng_square_circle1_bc(msh):
+    x, y = SpatialCoordinate(msh)
+    bcs = {
+        "NS_BCS": [
+            ("inflow", ([(-((y*0.5)**2) + 1) * Inflow_velocity, 0], (6))),
+            ("no_slip", ([0, 0], (1,2,3,4,5,7)))
+        ],
+        "AD_BCS": [
+            ("left", (0, (6))),
+            ("hor", (0, (5,7))),
+            ("circle", (1, (1,2,3,4)))
+        ],
+        "AD_SOURCE": 0.001,
+        "U_EXACT": None
+    }
+    return bcs
 
 def get_bcs( msh, bc_name ):
     bc_function = globals().get(f"get_{bc_name}")
