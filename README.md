@@ -10,6 +10,7 @@ Adaptive Mesh Refinement for the Conjugate Heat Transfer Equations Using Firedra
 - [ ] Simple uniform refinement implementation
 - [ ] Create First Adaptive refinement Error indicator
 - [ ] Make different meshes to try out
+- [ ] Clean up output of a refinement run
 # Problems
 - [ ] Reynolds number only influences the pressure field and npt the velocity field so it doesn't make a difference for the final temperature field, does this make sense?
 - [ ] The magnitude of the velocity field only seems to make a tiny difference in the final temperature field
