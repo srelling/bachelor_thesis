@@ -3,6 +3,7 @@ import netgen
 from netgen.geom2d import SplineGeometry
 import matplotlib.pyplot as plt
 import ufl
+import os
 
 
 def generate_ng_square_circle1( h_max ):
@@ -24,14 +25,24 @@ def generate_ng_square_circle1( h_max ):
     [geo.Append(c, bc=bc, leftdomain=0, rightdomain=1) for c, bc in circle]
     [geo.Append(c, bc=bc, leftdomain=1, rightdomain=0) for c, bc in square]
     ngmsh = geo.GenerateMesh(maxh=h_max)
-    msh = Mesh(ngmsh)
-    return msh
+    return ngmsh
 
-def generate_mesh( mesh_name, h_max=0.4 ):
-    mesh_function = globals().get(f"generate_{mesh_name}")
-    if mesh_function is None:
-        raise ValueError(f"no mesh with the name {mesh_name} found.")
-    return mesh_function( h_max )
+def load_or_generate_mesh( mesh_name, h_max=0.4 ):
+    vol_file = f"meshes/{mesh_name}_{str(h_max).replace('.', '')}.vol"
+    if os.path.exists(vol_file):
+        ngmsh = netgen.meshing.Mesh()
+        ngmsh.Load(vol_file)
+        print(f"loaded mesh from {vol_file}")
+    else:
+        mesh_function = globals().get(f"generate_{mesh_name}")
+        if mesh_function is None:
+            raise ValueError(f"no mesh or generator with the name {mesh_name} found.")
+        ngmsh = mesh_function(h_max)
+        ngmsh.Save(vol_file)
+        print(f"saved mesh to {vol_file}")
+    mesh = Mesh(ngmsh)
+    return mesh
+    
 
 if __name__ == "__main__":
     mesh = generate_ng_square_circle1( 0.4 )

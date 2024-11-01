@@ -24,13 +24,6 @@ from netgen.geom2d import CSG2d, Circle, Rectangle
 tolerance = 1e-16
 
 
-def plot_mesh(mesh):
-    fig, axes = plt.subplots()
-    triplot(mesh, axes=axes)
-    plt.gca().set_aspect('equal', adjustable='box')
-    axes.legend()
-
-
 def Mark(msh, uh):
     W = FunctionSpace(msh, "DG", 0)
     V = FunctionSpace(msh, "CG", 2)
@@ -72,14 +65,45 @@ def Mark(msh, uh):
     
     
 if __name__ == "__main__":
-    msh = generate_mesh( "ng_square_circle1", h_max=0.4 )    
+    msh = load_or_generate_mesh( "ng_square_circle1", h_max=0.4 )    
     bcs = get_bcs( msh, "ng_square_circle1_bc" )
+    create_output_directory()
+    
+    with CheckpointFile("solutions/ng_square_circle1_001/temperature.h5", 'r') as afile:
+        msh_sol = afile.load_mesh("ng_square_circle1")
+        u_sol = afile.load_function(msh_sol, "u_sol")
+    
+    V_exact = FunctionSpace(msh_sol, "CG", 2)
+    coords = np.array(msh_sol.coordinates.dat.data)
+    u_sol_at_nodes = np.array([u_sol.at(coord) for coord in coords])
+
+    
+    errors = []
+    n_dofs = []
     
     for i in range(5):
-        print("level {}".format(i))
-        uh = solveCHT(msh, bcs)
+        print(f"level {i}")
+        uh = solveCHT(msh, bcs, i)
+        uh_at_nodes = np.array([uh.at(coord) for coord in coords])
+        l2_error = np.linalg.norm(u_sol_at_nodes - uh_at_nodes)
+        errors.append(l2_error)
+        V = FunctionSpace(msh, "CG", 2)
+        n_dofs.append(V.dim())
         mark = Mark(msh, uh)
         msh = msh.refine_marked_elements(mark)
+    
+    print(errors)
+    print(n_dofs)
+    plt.clf()
+    plt.loglog(n_dofs, errors, "-o")
+    plt.xlabel("Number of DoFs")
+    plt.ylabel("Error")
+    plt.grid()
+    plt.show()
+        
+
+        
+        
         
     
 

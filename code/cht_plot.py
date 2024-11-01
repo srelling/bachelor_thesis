@@ -16,14 +16,15 @@ def create_output_directory():
     except FileExistsError:
         pass
     
-def plot_mesh(mesh):
+def plot_mesh(mesh, i):
     fig, axes = plt.subplots()
     triplot(mesh, axes=axes)
     plt.gca().set_aspect('equal', adjustable='box')
     axes.legend()
-    plt.savefig("output/output" + daytime_string + "/plots/mesh.pdf")       if settings["save_plot"]["mesh"] else None
+    axes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.savefig("output/output" + daytime_string + f"/plots/mesh_{i}.pdf")       if settings["save_plot"]["mesh"] else None
     
-def plot_velocity_and_pressure(u, p):
+def plot_velocity_and_pressure(u, p, i):
     fig, axes = plt.subplots(nrows=2, sharex=True, sharey=True)
     streamlines = streamplot(u, resolution=0.1,  seed=0, axes=axes[0])
     fig.colorbar(streamlines, ax=axes[0], fraction=0.046)
@@ -34,17 +35,17 @@ def plot_velocity_and_pressure(u, p):
     axes[1].set_aspect("equal")
     axes[1].set_title("Pressure")
     plt.gca().set_aspect('equal', adjustable='box')
-    plt.savefig("output/output" + daytime_string + "/plots/velocity_pressure.pdf")       if settings["save_plot"]["velocity_pressure"] else None
+    plt.savefig("output/output" + daytime_string + f"/plots/velocity_pressure_{i}.pdf")       if settings["save_plot"]["velocity_pressure"] else None
     
-def plot_temperature(u):
+def plot_temperature(u, i):
     colorplot = tripcolor(u)
     plt.xlabel(r'$x$')
     plt.ylabel(r'$y$')
     plt.colorbar(colorplot)
     plt.gca().set_aspect('equal', adjustable='box')
-    plt.savefig("output/output" + daytime_string + "/plots/temperature.pdf")       if settings["save_plot"]["temperature"] else None
+    plt.savefig("output/output" + daytime_string + f"/plots/temperature_{i}.pdf")       if settings["save_plot"]["temperature"] else None
     
-def plot_solution_difference(mesh, bcs, u_sol):
+def plot_solution_difference(mesh, bcs, u_sol, i):
     if "U_EXACT" not in bcs or bcs["U_EXACT"] is None:
         return
     u_exact_expr = bcs["U_EXACT"]
@@ -61,16 +62,14 @@ def plot_solution_difference(mesh, bcs, u_sol):
     plt.ylabel(r'$y$')
     plt.title("Difference between computed and exact solution")
     plt.colorbar(colorplot)
-    plt.savefig("output/output" + daytime_string + "/plots/solution_difference.pdf") if settings["save_plot"]["solution_difference"] else None
+    plt.savefig("output/output" + daytime_string + f"/plots/solution_difference_{i}.pdf") if settings["save_plot"]["solution_difference"] else None
 
-def save_solution(u, p, T):
+def save_solution(u, p, T, i):
     if not any(settings["save_vtk"].values()):
         return
-    u_file = VTKFile("output/output" + daytime_string + "/vtk/velocity.pvd")         if settings["save_vtk"]["velocity"] else None
-    p_file = VTKFile("output/output" + daytime_string + "/vtk/pressure.pvd")         if settings["save_vtk"]["pressure"] else None
-    T_file = VTKFile("output/output" + daytime_string + "/vtk/temperature.pvd")      if settings["save_vtk"]["temperature"] else None
-    u_file.write(u)                                                                  if settings["save_vtk"]["velocity"] else None
-    p_file.write(p)                                                                  if settings["save_vtk"]["pressure"] else None
-    T_file.write(T)                                                                  if settings["save_vtk"]["temperature"] else None
-    print("Solution saved to output/output" + daytime_string + "/")
+    VTKFile("output/output" + daytime_string + "/vtk/velocity.pvd", mode="a", adaptive=True).write(u)         if settings["save_vtk"]["velocity"] else None
+    VTKFile("output/output" + daytime_string + "/vtk/pressure.pvd", mode="a", adaptive=True).write(p)         if settings["save_vtk"]["pressure"] else None
+    VTKFile("output/output" + daytime_string + "/vtk/temperature.pvd", mode="a", adaptive=True).write(T)      if settings["save_vtk"]["temperature"] else None
+    
+    print("Solution saved to output/output" + daytime_string + "/vtk")
     

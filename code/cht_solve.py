@@ -10,6 +10,7 @@ import shutil
 import os
 
 from cht_boundary_conditions import *
+from cht_meshes import *
 from cht_parameters import *
 from cht_plot import *
 from settings import *
@@ -88,38 +89,43 @@ def solveAD( msh, bcs, u_init ):
     L = f * v * dx
     h_k = sqrt( 2 ) * CellVolume( msh ) / CellDiameter( msh )
     b_norm = norm(b)
-    print( "b_norm = ", b_norm )
     Pe_k = m_k * b_norm * h_k / ( 2.0 * k )
     one = Constant( 1.0 )
     eps_k = conditional( gt( Pe_k , one ) , one , Pe_k )
     tau_k = h_k / ( 2.0 * b_norm ) * eps_k
     a += inner( ( dot( b , grad( u ) ) - k * div( grad( u ) ) ) , tau_k * dot( b , grad( v ) ) ) * dx
     L += f * tau_k * dot( b , grad( v ) ) * dx
-    u_sol = Function( V )
+    u_sol = Function( V  , name="u_sol" )
     problem = LinearVariationalProblem( a , L , u_sol , boundary_conditions )
     solver = LinearVariationalSolver( problem )
     solver.solve()
     return u_sol
 
 # ====================CHT====================
-def solveCHT( msh, bcs ):
-    create_output_directory()
-    plot_mesh( msh )
+def solveCHT( msh, bcs, iteration=0 ):
+    plot_mesh( msh, iteration )
     print( "Solving Navier-Stokes equations..." )
     u_init, p_init = solveNS( msh, bcs )
     print( "Navier-Stokes equations solved." )
     print( "Solving Advection-Diffusion equations..." )
-    plot_velocity_and_pressure( u_init, p_init )
+    plot_velocity_and_pressure( u_init, p_init, iteration )
     print( "Advection-Diffusion equations solved." )
     u_sol = solveAD( msh , bcs, u_init )
-    plot_temperature( u_sol )
-    plot_solution_difference( msh, bcs, u_sol )
-    save_solution( u_init, p_init, u_sol )
+    plot_temperature( u_sol, iteration )
+    plot_solution_difference( msh, bcs, u_sol, iteration )
+    save_solution( u_init, p_init, u_sol, iteration )
     plt.show()                                                  if settings["show_plots"] else None
     return u_sol
 
 # ======================MAIN======================
 if __name__ == "__main__":
-    msh = Mesh( '../meshes/square2.msh' )
-    bcs = get_bcs( msh, "square_exact_bc2" )
+    msh = load_or_generate_mesh( "ng_square_circle1", h_max=0.01 )
+    msh.name = "ng_square_circle1"
+    bcs = get_bcs( msh, "ng_square_circle1_bc" )
+    create_output_directory()
     u_sol = solveCHT( msh, bcs )
+    with CheckpointFile("solutions/ng_square_circle1_001/temperature.h5", 'w') as afile:
+        afile.save_mesh(msh)
+        afile.save_function(u_sol)
+    
+    
