@@ -19,7 +19,6 @@ from settings import *
 
 import netgen
 from netgen.geom2d import SplineGeometry
-from netgen.geom2d import CSG2d, Circle, Rectangle
 
 tolerance = 1e-16
 
@@ -62,15 +61,38 @@ def Mark(msh, uh):
                 markedVec0.getArray()[:] = 1.0*marked[:]
             sct(markedVec0, markedVec, mode=PETSc.Scatter.Mode.REVERSE)
     return mark  
-    
-    
+
+
+def Refine_and_project( msh , mark ):
+    els = {2: msh.netgen_mesh.Elements2D, 3: msh.netgen_mesh.Elements3D}
+    dim = msh.geometric_dimension()
+    with mark.dat.vec as marked:
+        marked0 = marked
+        getIdx = msh._cell_numbering.getOffset
+        if msh.sfBCInv is not None:
+            getIdx = lambda x: x #pylint: disable=C3001
+            _, marked0 = msh.topology_dm.distributeField(msh.sfBCInv,
+                                                              msh._cell_numbering,
+                                                              marked)
+        mark = marked0.getArray()
+        max_refs = np.max(mark)
+        for _ in range(int(max_refs)):
+            for i, el in enumerate(els[dim]()):
+                if mark[getIdx(i)] > 0:
+                    el.refine = True
+                else:
+                    el.refine = False
+            msh.netgen_mesh.Refine(adaptive=False)
+            mark = mark-np.ones(mark.shape)
+        return Mesh(msh.netgen_mesh)
+        
+
 if __name__ == "__main__":
-    msh = load_or_generate_mesh( "ng_square_circle1", h_max=0.4 )    
-    bcs = get_bcs( msh, "ng_square_circle1_bc" )
+    msh = load_or_generate_mesh( "ng_square_circle1", h_max=0.4 )
     create_output_directory()
     
     with CheckpointFile("solutions/ng_square_circle1_001/temperature.h5", 'r') as afile:
-        msh_sol = afile.load_mesh("ng_square_circle1")
+        msh_sol = afile.load_mesh("ng_square_circle1_exact")
         u_sol = afile.load_function(msh_sol, "u_sol")
     
     V_exact = FunctionSpace(msh_sol, "CG", 2)
@@ -83,18 +105,19 @@ if __name__ == "__main__":
     
     for i in range(5):
         print(f"level {i}")
+        bcs = get_bcs( msh, "ng_square_circle1_bc" )
         uh = solveCHT(msh, bcs, i)
-        uh_at_nodes = np.array([uh.at(coord) for coord in coords])
-        l2_error = np.linalg.norm(u_sol_at_nodes - uh_at_nodes)
+        uh_dest = Function(V_exact).interpolate(uh)
+        l2_error = errornorm(u_sol, uh_dest, norm_type="L2")
         errors.append(l2_error)
         V = FunctionSpace(msh, "CG", 2)
         n_dofs.append(V.dim())
         mark = Mark(msh, uh)
-        msh = msh.refine_marked_elements(mark)
+        msh = Refine_and_project(msh, mark)
     
     print(errors)
     print(n_dofs)
-    plt.clf()
+    plt.close('all')
     plt.loglog(n_dofs, errors, "-o")
     plt.xlabel("Number of DoFs")
     plt.ylabel("Error")

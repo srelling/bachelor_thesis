@@ -1,14 +1,14 @@
 settings = {
     "show_plots": False,
     "save_plot": {
-        "mesh": False,
+        "mesh": True,
         "velocity_pressure": False,
-        "temperature": False,
+        "temperature": True,
         "solution_difference": False
     },
     "save_vtk": {
-        "velocity": False,
-        "pressure": False,
-        "temperature": False
+        "velocity": True,
+        "pressure": True,
+        "temperature": True
     }
 }

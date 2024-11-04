@@ -119,8 +119,8 @@ def solveCHT( msh, bcs, iteration=0 ):
 
 # ======================MAIN======================
 if __name__ == "__main__":
-    msh = load_or_generate_mesh( "ng_square_circle1", h_max=0.01 )
-    msh.name = "ng_square_circle1"
+    msh = load_or_generate_mesh( "ng_square_circle1_exact", h_max=0.4 )
+    msh.name = "ng_square_circle1_exact"
     bcs = get_bcs( msh, "ng_square_circle1_bc" )
     create_output_directory()
     u_sol = solveCHT( msh, bcs )
