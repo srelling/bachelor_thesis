@@ -102,19 +102,18 @@ def solveAD( msh, bcs, u_init ):
     return u_sol
 
 # ====================CHT====================
-def solveCHT( msh, bcs, iteration=0 ):
-    plot_mesh( msh, iteration )
-    print( "Solving Navier-Stokes equations..." )
+def solveCHT( msh, bcs, dir, iteration=0 ):
+    plot_mesh( msh, dir, iteration )                                 if settings["save_plot"]["mesh"] else None
+    print( "Solving Navier-Stokes equations..." )                    
     u_init, p_init = solveNS( msh, bcs )
     print( "Navier-Stokes equations solved." )
     print( "Solving Advection-Diffusion equations..." )
-    plot_velocity_and_pressure( u_init, p_init, iteration )
+    plot_velocity_and_pressure( u_init, p_init, dir, iteration )     if settings["save_plot"]["velocity_pressure"] else None
     print( "Advection-Diffusion equations solved." )
     u_sol = solveAD( msh , bcs, u_init )
-    plot_temperature( u_sol, iteration )
-    plot_solution_difference( msh, bcs, u_sol, iteration )
-    save_solution( u_init, p_init, u_sol, iteration )
-    plt.show()                                                  if settings["show_plots"] else None
+    plot_temperature( u_sol, dir, iteration )                        if settings["save_plot"]["temperature"] else None
+    plot_solution_difference( msh, bcs, u_sol, dir, iteration )      if settings["save_plot"]["solution_difference"] else None
+    save_solution( u_init, p_init, u_sol, dir, iteration )
     return u_sol
 
 # ======================MAIN======================

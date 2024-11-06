@@ -62,6 +62,14 @@ def Mark(msh, uh):
             sct(markedVec0, markedVec, mode=PETSc.Scatter.Mode.REVERSE)
     return mark  
 
+def Mark_uniform(msh):
+    W = FunctionSpace(msh, "DG", 0)
+    mark = Function(W)
+    x, y = SpatialCoordinate(msh)
+    # Fill in all of mark with 1
+    with mark.dat.vec as markVec:
+        markVec.set(1.0)
+    return mark
 
 def Refine_and_project( msh , mark ):
     els = {2: msh.netgen_mesh.Elements2D, 3: msh.netgen_mesh.Elements3D}
@@ -88,9 +96,8 @@ def Refine_and_project( msh , mark ):
         
 
 if __name__ == "__main__":
-    msh = load_or_generate_mesh( "ng_square_circle1", h_max=0.4 )
-    create_output_directory()
     
+    # Exact Solution
     with CheckpointFile("solutions/ng_square_circle1_001/temperature.h5", 'r') as afile:
         msh_sol = afile.load_mesh("ng_square_circle1_exact")
         u_sol = afile.load_function(msh_sol, "u_sol")
@@ -100,30 +107,46 @@ if __name__ == "__main__":
     u_sol_at_nodes = np.array([u_sol.at(coord) for coord in coords])
 
     
-    errors = []
-    n_dofs = []
+    errors_amr = []
+    n_dofs_amr = []
+    
+    dir = create_output_directory("AMR")
+    msh = load_or_generate_mesh( "ng_square_circle1", h_max=0.4 )
+
+    for i in range(10):
+        print(f"level {i}")
+        bcs = get_bcs( msh, "ng_square_circle1_bc" )
+        uh = solveCHT(msh, bcs, dir, i)
+        uh_dest = Function(V_exact).interpolate(uh)
+        l2_error = errornorm(u_sol, uh_dest, norm_type="L2")
+        errors_amr.append(l2_error)
+        V = FunctionSpace(msh, "CG", 2)
+        n_dofs_amr.append(V.dim())
+        mark = Mark(msh, uh)
+        msh = msh.refine_marked_elements(mark)
+        
+    errors_uni = []
+    n_dofs_uni = []
+    
+    dir = create_output_directory("Uniform")
+    msh = load_or_generate_mesh( "ng_square_circle1", h_max=0.4 )
     
     for i in range(5):
         print(f"level {i}")
         bcs = get_bcs( msh, "ng_square_circle1_bc" )
-        uh = solveCHT(msh, bcs, i)
+        uh = solveCHT(msh, bcs, dir, i)
         uh_dest = Function(V_exact).interpolate(uh)
         l2_error = errornorm(u_sol, uh_dest, norm_type="L2")
-        errors.append(l2_error)
+        errors_uni.append(l2_error)
         V = FunctionSpace(msh, "CG", 2)
-        n_dofs.append(V.dim())
-        mark = Mark(msh, uh)
-        msh = Refine_and_project(msh, mark)
+        n_dofs_uni.append(V.dim())
+        mark = Mark_uniform(msh)
+        msh = msh.refine_marked_elements(mark)
     
-    print(errors)
-    print(n_dofs)
-    plt.close('all')
-    plt.loglog(n_dofs, errors, "-o")
-    plt.xlabel("Number of DoFs")
-    plt.ylabel("Error")
-    plt.grid()
-    plt.show()
-        
+    
+    
+    
+    plot_error_convergence([n_dofs_amr, n_dofs_uni], [errors_amr, errors_uni], ["AMR", "Uniform"])                     if settings["save_plot"]["convergence"] else None
 
         
         

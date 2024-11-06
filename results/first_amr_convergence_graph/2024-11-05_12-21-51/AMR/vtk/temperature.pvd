@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<VTKFile type="Collection" version="0.1" byte_order="LittleEndian">
+<Collection>
+<DataSet timestep="0" file="temperature/temperature_0.vtu" />
+<DataSet timestep="1" file="temperature/temperature_1.vtu" />
+<DataSet timestep="2" file="temperature/temperature_2.vtu" />
+<DataSet timestep="3" file="temperature/temperature_3.vtu" />
+<DataSet timestep="4" file="temperature/temperature_4.vtu" />
+<DataSet timestep="5" file="temperature/temperature_5.vtu" />
+<DataSet timestep="6" file="temperature/temperature_6.vtu" />
+<DataSet timestep="7" file="temperature/temperature_7.vtu" />
+<DataSet timestep="8" file="temperature/temperature_8.vtu" />
+<DataSet timestep="9" file="temperature/temperature_9.vtu" />
+</Collection>
+</VTKFile>
