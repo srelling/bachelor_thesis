@@ -11,7 +11,7 @@ import os
 
 from cht_boundary_conditions import *
 from cht_meshes import *
-from cht_parameters import *
+from parameters import *
 from cht_plot import *
 from settings import *
 
@@ -118,12 +118,12 @@ def solveCHT( msh, bcs, dir, iteration=0 ):
 
 # ======================MAIN======================
 if __name__ == "__main__":
-    msh = load_or_generate_mesh( "ng_square_circle1_exact", h_max=0.4 )
-    msh.name = "ng_square_circle1_exact"
-    bcs = get_bcs( msh, "ng_square_circle1_bc" )
-    create_output_directory()
-    u_sol = solveCHT( msh, bcs )
-    with CheckpointFile("solutions/ng_square_circle1_001/temperature.h5", 'w') as afile:
+    msh = load_or_generate_mesh( "ng_rect_circ1", h_max=1 )
+    msh.name = "ng_rect_circ1_exact"
+    bcs = get_bcs( msh, "ng_rect_circ1_bc" )
+    dir = create_output_directory(0)
+    u_sol = solveCHT( msh, bcs, dir )
+    with CheckpointFile("solutions/ng_rect_circ1_exact/temperature.h5", 'w') as afile:
         afile.save_mesh(msh)
         afile.save_function(u_sol)
     

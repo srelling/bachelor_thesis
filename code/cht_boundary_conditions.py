@@ -1,6 +1,6 @@
 from firedrake import *
 import ufl
-from cht_parameters import *
+from parameters import *
 
 def get_square_exact_bc(msh):
     x, y = SpatialCoordinate(msh)
@@ -47,6 +47,23 @@ def get_ng_square_circle1_bc(msh):
             ("left", (0, (6))),
             ("hor", (0, (5,7))),
             ("circle", (1, (1,2,3,4)))
+        ],
+        "AD_SOURCE": 0.001,
+        "U_EXACT": None
+    }
+    return bcs
+
+def get_ng_rect_circ1_bc(msh):
+    x, y = SpatialCoordinate(msh)
+    bcs = {
+        "NS_BCS": [
+            ("inflow", ([(-((y*0.5)**2) + 1) * Inflow_velocity, 0], (2))),
+            ("no_slip", ([0, 0], (1,4,5)))
+        ],
+        "AD_BCS": [
+            ("left", (0, (2))),
+            ("hor", (0, (1,4))),
+            ("circle", (1, (5)))
         ],
         "AD_SOURCE": 0.001,
         "U_EXACT": None

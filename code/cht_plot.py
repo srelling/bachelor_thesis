@@ -1,21 +1,33 @@
 import os
+import re
 import datetime
 import shutil
 import matplotlib.pyplot as plt
 from firedrake import *
-
+from parameters import *
 from settings import *
 
 daytime_string = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-def create_output_directory(method):
+def replace_list_elements(filename, j):
+    with open(filename, 'r') as file:
+        content = file.read()
+    content = re.sub(r'(\w+)\s*=\s*\[(.*?)\]', 
+                     lambda m: f"{m.group(1)} = {m.group(2).split(',')[j].strip()}", 
+                     content)
+    with open(filename, 'w') as file:
+        file.write(content)
+
+def create_output_directory(j):
     try:
-        os.makedirs("output/" + daytime_string + "/" + method + "/plots")
-        os.makedirs("output/" + daytime_string + "/" + method + "/vtk")
-        shutil.copy("cht_parameters.py", "output/" + daytime_string + "/cht_parameters.py")
+        os.makedirs("output/" + daytime_string + "/" + method_name + "/plots")
+        os.makedirs("output/" + daytime_string + "/" + method_name + "/vtk")
+        shutil.copy("parameters.py", "output/" + daytime_string + "/parameters.py")
+        shutil.copy("parameters.py", "output/" + daytime_string + "/" + method_name + "/parameters.py")
+        replace_list_elements("output/" + daytime_string + "/" + method_name + "/parameters.py", j)
     except FileExistsError:
         pass
-    output_dir = "output/" + daytime_string + "/" + method
+    output_dir = "output/" + daytime_string + "/" + method_name
     return output_dir
     
 def plot_mesh(mesh, dir, i):
@@ -64,16 +76,37 @@ def plot_solution_difference(mesh, bcs, u_sol, dir, i):
     plt.title("Difference between computed and exact solution")
     plt.colorbar(colorplot)
     plt.savefig(f"{dir}/plots/solution_difference_{i}.pdf")
+    
+def plot_old_convergence_data(comparison):
+    with open(f"output/{comparison}/convergence.txt", "r") as file:
+        data = file.readlines()
+    n_dofs = [int(line.split()[0]) for line in data]
+    errors = [float(line.split()[1]) for line in data]
+    plt.loglog(n_dofs, errors, "-o", label=comparison)
 
-def plot_error_convergence(n_dofs_list, errors_list, names):
+def plot_error_convergence(n_dofs_list, errors_list):
     plt.close("all")
-    for n_dofs, errors, name in zip(n_dofs_list, errors_list, names):
-        plt.loglog(n_dofs, errors, "-o", label=name)
+    for i, (n_dofs, errors) in enumerate(zip(n_dofs_list, errors_list)):
+        plt.loglog(n_dofs, errors, "-o", label=method_name)
+    for comparison in settings["comparison_list"]:
+        plot_old_convergence_data(comparison)
     plt.xlabel("Number of DoFs")
     plt.ylabel("Error")
     plt.legend()
     plt.grid()
     plt.savefig("output/" + daytime_string + "/convergence.pdf")
+    
+def save_convergence_data(n_dofs, errors, dir):
+    with open(f"{dir}/convergence.txt", "w") as file:
+        for n_dof, error in zip(n_dofs, errors):
+            file.write(f"{n_dof} {error}\n")
+    print("Convergence data saved to " + dir)
+    
+def save_parameters_to_txt(dir):
+    with open(f"{dir}/parameters.txt", "w") as file:
+        for key, value in globals().items():
+            if key.isupper():
+                file.write(f"{key} = {value}\n")
 
 def save_solution(u, p, T, dir, i):
     if not any(settings["save_vtk"].values()):

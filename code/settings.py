@@ -10,5 +10,11 @@ settings = {
         "velocity": True,
         "pressure": True,
         "temperature": True
-    }
+    },
+    "save_data": {
+        "convergence": True,
+        "parameters": True
+    },
+    "compare_convergence": True,
+    "comparison_list": [],
 }
